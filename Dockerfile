@@ -23,6 +23,7 @@ RUN apk add --update \
     | jq -r '.assets[] | select(.name=="om-linux") | .browser_download_url' \
     | wget -qi - -O /bin/om \
     && chmod +x /bin/om \
+    && ln -s /bin/om /bin/om-linux \
     && rm /var/cache/apk/*
 
 RUN version_number=$(curl 'https://github.com/cloudfoundry/bosh-cli/releases/latest' 2>&1 | egrep -o '([0-9]+\.[0-9]+\.[0-9]+)') && \
