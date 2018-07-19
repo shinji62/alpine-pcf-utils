@@ -1,0 +1,60 @@
+---
+jobs:
+- name: build-ship-it
+  serial: true
+  public: true
+  plan:
+  - aggregate:
+    - get: alpine-docker-image
+      trigger: true
+      params:
+        skip_download: true
+    - get: alpine-pcf-utils
+      trigger: true
+  - put: version
+    params:
+      bump: minor
+      annotate: version/number
+  - put: alpine-pcf-utils-image
+    params:
+      build: alpine-pcf-utils/
+      tag: version/number
+      tag_as_latest: true
+  - put: alpine-pcf-utils
+    params:
+      only_tag: true
+      repository: alpine-pcf-utils
+      tag: version/number
+
+
+
+resources:
+- name: alpine-pcf-utils
+  type: git
+  source:
+    uri: git@github.com:shinji62/alpine-pcf-utils.git
+    branch: master
+    private_key: {{private-key-github-concourse}}
+
+- name: alpine-pcf-utils-image
+  type: docker-image
+  source:
+    repository: getourneau/alpine-pcf-utils
+    email: {{email-docker-hub}}
+    username: {{username-docker-hub}}
+    password: {{password-docker-hub}}
+
+- name: alpine-docker-image
+  type: docker-image
+  source:
+    repository: alpine
+
+- name: version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:shinji62/version-concourse.git
+    branch: master
+    file: alpine-pcf-utils/version
+    private_key: {{private-key-github-concourse}}
+    git_user: {{concourse-user-gitinfo}}
